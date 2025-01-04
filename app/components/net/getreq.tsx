@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Button,
   FlatList,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -19,6 +21,8 @@ const Getreq = () => {
   const [posts, setPosts] = useState<post[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [postTitle, setPostTitle] = useState("");
+  const [postBody, setPostBody] = useState("");
 
   const fetchposts = async (limit = 10) => {
     const response = await fetch(
@@ -47,40 +51,81 @@ const Getreq = () => {
     setRefreshing(false);
   };
 
+  const postData = async () => {
+    const response = await fetch("https://jsonplaceholder.typicode.com/posts", {
+      method: "post",
+      headers: {
+        "Content-type": "application/json",
+      },
+      body: JSON.stringify({
+        title: postTitle,
+        body: postBody,
+      }),
+    });
+    const newpost = await response.json();
+    setPosts([newpost, ...posts]);
+    setPostBody("");
+    setPostTitle("");
+  };
+
+  const handlePost = () => {
+    postData();
+    // console.log(postBody, postTitle);
+  };
+
   return (
-    <View
-      style={{
-        backgroundColor: "white",
-        margin: 10,
-        padding: 10,
-        alignItems: "center",
-      }}
-    >
-      {/* {posts.map((post) => {
+    <>
+      <View style={style.postContainer}>
+        <Text>title : </Text>
+        <TextInput
+          style={style.postInput}
+          placeholder="enter title"
+          value={postTitle}
+          onChangeText={setPostTitle}
+        />
+        <Text>body : </Text>
+        <TextInput
+          style={style.postInput}
+          placeholder="enter body"
+          value={postBody}
+          onChangeText={setPostBody}
+        />
+        <Button title="post" onPress={handlePost} />
+      </View>
+      <View
+        style={{
+          backgroundColor: "white",
+          margin: 10,
+          padding: 10,
+          alignItems: "center",
+        }}
+      >
+        {/* {posts.map((post) => {
         return (
           <View key={post.id}>
             <Text>{post.title}</Text>
           </View>
         );
       })} */}
-      <FlatList
-        data={posts}
-        renderItem={({ item }) => {
-          return (
-            <View key={item.id} style={style.card}>
-              <Text style={style.titleText}>{item.title}</Text>
-              <Text style={style.bodyText}>{item.body}</Text>
-            </View>
-          );
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: 16 }}></View>}
-        ListEmptyComponent={<Text>NO POSTS FOUND</Text>}
-        ListHeaderComponent={<Text>POSTS LIST</Text>}
-        ListFooterComponent={<Text>END OF LIST</Text>}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-      />
-    </View>
+        <FlatList
+          data={posts}
+          renderItem={({ item }) => {
+            return (
+              <View key={item.id} style={style.card}>
+                <Text style={style.titleText}>{item.title}</Text>
+                <Text style={style.bodyText}>{item.body}</Text>
+              </View>
+            );
+          }}
+          ItemSeparatorComponent={() => <View style={{ height: 16 }}></View>}
+          ListEmptyComponent={<Text>NO POSTS FOUND</Text>}
+          ListHeaderComponent={<Text>POSTS LIST</Text>}
+          ListFooterComponent={<Text>END OF LIST</Text>}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      </View>
+    </>
   );
 };
 
@@ -106,5 +151,18 @@ const style = StyleSheet.create({
     paddingTop: StatusBar.currentHeight,
     justifyContent: "center",
     alignItems: "center",
+  },
+  postContainer: {
+    backgroundColor: "lightgray",
+    margin: 5,
+    width: "50%",
+    borderRadius: 5,
+    padding: 5,
+  },
+  postInput: {
+    borderColor: "black",
+    borderWidth: 2,
+    color: "black",
+    borderRadius: 5,
   },
 });
